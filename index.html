@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Configurações para Web App Nativo (PWA) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#121212">
+    <title>Smart Market Pro</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #03dac6;
+            --primary-hover: #00b3a3;
+            --danger-color: #cf6679;
+            --text-color: #e0e0e0;
+            --border-color: #444;
+            --neon-verde: #39ff14;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        /* Top Bar e Título */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .app-title { font-size: 1.5em; font-weight: bold; color: var(--primary-color); margin: 0; text-align: center; flex-grow: 1;}
+
+        /* Menu Hambúrguer */
+        .hamburger-btn { font-size: 24px; background: none; border: none; color: var(--primary-color); cursor: pointer; padding: 5px; z-index: 1001;}
+        .menu-dropdown { 
+            display: none; position: absolute; top: 50px; right: 10px; background: var(--surface-color); 
+            border: 1px solid var(--primary-color); border-radius: 8px; flex-direction: column; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+        .menu-dropdown.show { display: flex; }
+        .menu-dropdown button { padding: 12px 20px; background: none; border: none; color: white; text-align: left; font-size: 1em; border-bottom: 1px solid #333; }
+        .menu-dropdown button:last-child { border-bottom: none; }
+        .menu-dropdown button:hover { background: #333; color: var(--primary-color); }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; background: #333; border: none; color: white; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .tab-btn.active { background: var(--primary-color); color: #000; }
+
+        .tela { display: none; }
+        .tela.ativa { display: block; }
+
+        /* Toggle Corrigido */
+        .modo-toggle { text-align: center; margin-bottom: 15px; background: var(--surface-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .modo-toggle label { font-weight: bold; cursor: pointer; color: #ffb74d; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.1em;}
+        .modo-toggle input[type="checkbox"] { transform: scale(1.4); margin: 0; }
+
+        /* Comparador */
+        .comparador-container { display: flex; flex-direction: row; gap: 8px; width: 100%; }
+        .produto-card { background-color: var(--surface-color); padding: 8px; border-radius: 8px; flex: 1; border: 2px solid var(--border-color); transition: all 0.3s ease; box-sizing: border-box; min-width: 0; }
+        .produto-card.neon-verde { border-color: var(--neon-verde); box-shadow: 0 0 12px var(--neon-verde); }
+
+        .form-group { margin-bottom: 8px; }
+        input { width: 100%; padding: 8px; background-color: #2c2c2c; border: 1px solid var(--border-color); color: white; border-radius: 4px; box-sizing: border-box; font-size: 0.9em; }
+
+        .radio-group { display: flex; flex-wrap: wrap; gap: 3px; }
+        .radio-group input[type="radio"] { display: none; }
+        .radio-group label { background-color: #333; padding: 6px 4px; border-radius: 4px; font-size: 0.7em; cursor: pointer; border: 1px solid #555; flex: 1; text-align: center; }
+        .radio-group input[type="radio"]:checked + label { background-color: var(--primary-color); color: #000; font-weight: bold; }
+
+        .resultado-preco { font-size: 1em; font-weight: bold; color: #ffb74d; margin: 8px 0; text-align: center; min-height: 3em; display: flex; align-items: center; justify-content: center;}
+
+        button { width: 100%; padding: 10px; background-color: var(--primary-color); color: #000; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        
+        /* Lista e Tabelas */
+        .lista-container { margin-top: 20px; background: var(--surface-color); padding: 10px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border-color); }
+        .unidade-txt { display: block; font-size: 0.85em; color: #aaa; margin-top: 2px; }
+        .comp-txt { display: block; font-size: 0.8em; color: var(--primary-color); margin-top: 2px; font-weight: bold; }
+
+        .historico-card { background: var(--surface-color); border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .historico-card:hover { background: #252525; }
+        
+        .header-detalhe { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;}
+        .btn-acao-top { width: auto; background: #555; color: white; padding: 8px 15px; margin-left: 5px;}
+        .btn-share { background: #25d366; color: white; font-size: 1em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        .badge-pag { font-size: 0.8em; background: #444; padding: 2px 6px; border-radius: 4px; color: #03dac6; }
+        .remover-btn { background: var(--danger-color); color: white; width: auto; padding: 5px 10px; }
+        .dinheiro-box { display: none; margin-top: 10px; }
+
+        /* Modo de Edição */
+        .edit-box { display: none; background: #2a2a2a; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed var(--primary-color);}
+        .edit-box.ativo { display: block; }
+        
+        .backup-container { margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color); display: flex; gap: 10px; }
+        .btn-export { background: #bb86fc; }
+        .file-upload-wrapper { position: relative; flex: 1; }
+        .file-upload-wrapper input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .btn-import { background: #03dac6; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div style="width: 34px;"></div> <!-- Spacer -->
+        <h1 class="app-title">Smart Market Pro</h1>
+        <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
+        <div class="menu-dropdown" id="menuDrop">
+            <button onclick="toggleFullscreen()"><span id="txtFull">⛶ Tela Cheia</span></button>
+            <button onclick="instalarApp()">⬇ Instalar App</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" id="tab-nova" onclick="mudarTela('compras')">Nova Compra</button>
+        <button class="tab-btn" id="tab-hist" onclick="mudarTela('historico')">Histórico</button>
+    </div>
+
+    <!-- TELA 1: COMPARADOR -->
+    <div id="tela-compras" class="tela ativa">
+        <div class="modo-toggle">
+            <label><input type="checkbox" id="checkPapel" onchange="alternarModoInterface()"> 🧻 Comparar Papel Higiênico</label>
+        </div>
+
+        <div class="comparador-container">
+            <!-- Lado A -->
+            <div class="produto-card" id="cardA">
+                <input type="text" id="nomeA" placeholder="Marca A" class="form-group">
+                <input type="number" id="precoA" placeholder="Preço R$" step="0.01" oninput="calcular()" class="form-group">
+
+                <div id="padraoA">
+                    <input type="number" id="qtdA" placeholder="Quantidade" step="0.01" oninput="calcular()" class="form-group">
+                    <div class="radio-group" onchange="calcular()">
+                        <input type="radio" name="unidadeA" id="unA_kg" value="kg" checked><label for="unA_kg">Kg</label>
+                        <input type="radio" name="unidadeA" id="unA_g" value="g"><label for="unA_g">g</label>
+                        <input type="radio" name="unidadeA" id="unA_l" value="l"><label for="unA_l">L</label>
+                        <input type="radio" name="unidadeA" id="unA_ml" value="ml"><label for="unA_ml">ml</label>
+                        <input type="radio" name="unidadeA" id="unA_un" value="un"><label for="unA_un">Un</label>
+                    </div>
+                </div>
+
+                <div id="papelA" style="display:none;">
+                    <div class="radio-group" onchange="calcular()">
+                        <input type="radio" name="roloA" id="rolA_4" value="4"><label for="rolA_4">4</label>
+                        <input type="radio" name="roloA" id="rolA_8" value="8" checked><label for="rolA_8">8</label>
+                        <input type="radio" name="roloA" id="rolA_12" value="12"><label for="rolA_12">12</label>
+                        <input type="radio" name="roloA" id="rolA_16" value="16"><label for="rolA_16">16</label>
+                        <input type="radio" name="roloA" id="rolA_24" value="24"><label for="rolA_24">24</label>
+                        <input type="radio" name="roloA" id="rolA_32" value="32"><label for="rolA_32">32</label>
+                    </div>
+                    <div class="radio-group" style="margin-top:5px" onchange="calcular()">
+                        <input type="radio" name="metA" id="metA_20" value="20"><label for="metA_20">20m</label>
+                        <input type="radio" name="metA" id="metA_30" value="30" checked><label for="metA_30">30m</label>
+                        <input type="radio" name="metA" id="metA_60" value="60"><label for="metA_60">60m</label>
+                    </div>
+                    <div class="radio-group" style="margin-top:5px" onchange="calcular()">
+                        <input type="radio" name="folhaA" id="folA_1" value="1"><label for="folA_1">Simples</label>
+                        <input type="radio" name="folhaA" id="folA_2" value="2" checked><label for="folA_2">Dupla</label>
+                        <input type="radio" name="folhaA" id="folA_3" value="3"><label for="folA_3">Tripla</label>
+                    </div>
+                </div>
+
+                <div class="resultado-preco" id="resA">R$ 0.00</div>
+                <button onclick="salvarItemLista('A')">Selecionar A</button>
+            </div>
+
+            <!-- Lado B -->
+            <div class="produto-card" id="cardB">
+                <input type="text" id="nomeB" placeholder="Marca B" class="form-group">
+                <input type="number" id="precoB" placeholder="Preço R$" step="0.01" oninput="calcular()" class="form-group">
+
+                <div id="padraoB">
+                    <input type="number" id="qtdB" placeholder="Quantidade" step="0.01" oninput="calcular()" class="form-group">
+                    <div class="radio-group" onchange="calcular()">
+                        <input type="radio" name="unidadeB" id="unB_kg" value="kg" checked><label for="unB_kg">Kg</label>
+                        <input type="radio" name="unidadeB" id="unB_g" value="g"><label for="unB_g">g</label>
+                        <input type="radio" name="unidadeB" id="unB_l" value="l"><label for="unB_l">L</label>
+                        <input type="radio" name="unidadeB" id="unB_ml" value="ml"><label for="unB_ml">ml</label>
+                        <input type="radio" name="unidadeB" id="unB_un" value="un"><label for="unB_un">Un</label>
+                    </div>
+                </div>
+
+                <div id="papelB" style="display:none;">
+                    <div class="radio-group" onchange="calcular()">
+                        <input type="radio" name="roloB" id="rolB_4" value="4"><label for="rolB_4">4</label>
+                        <input type="radio" name="roloB" id="rolB_8" value="8" checked><label for="rolB_8">8</label>
+                        <input type="radio" name="roloB" id="rolB_12" value="12"><label for="rolB_12">12</label>
+                        <input type="radio" name="roloB" id="rolB_16" value="16"><label for="rolB_16">16</label>
+                        <input type="radio" name="roloB" id="rolB_24" value="24"><label for="rolB_24">24</label>
+                        <input type="radio" name="roloB" id="rolB_32" value="32"><label for="rolB_32">32</label>
+                    </div>
+                    <div class="radio-group" style="margin-top:5px" onchange="calcular()">
+                        <input type="radio" name="metB" id="metB_20" value="20"><label for="metB_20">20m</label>
+                        <input type="radio" name="metB" id="metB_30" value="30" checked><label for="metB_30">30m</label>
+                        <input type="radio" name="metB" id="metB_60" value="60"><label for="metB_60">60m</label>
+                    </div>
+                    <div class="radio-group" style="margin-top:5px" onchange="calcular()">
+                        <input type="radio" name="folhaB" id="folB_1" value="1"><label for="folB_1">Simples</label>
+                        <input type="radio" name="folhaB" id="folB_2" value="2" checked><label for="folB_2">Dupla</label>
+                        <input type="radio" name="folhaB" id="folB_3" value="3"><label for="folB_3">Tripla</label>
+                    </div>
+                </div>
+
+                <div class="resultado-preco" id="resB">R$ 0.00</div>
+                <button onclick="salvarItemLista('B')">Selecionar B</button>
+            </div>
+        </div>
+
+        <div class="lista-container">
+            <h3>Carrinho: R$ <span id="totalCarrinho">0.00</span></h3>
+            <table id="tabelaItens"></table>
+
+            <div style="margin-top:20px; border-top: 1px solid #444; padding-top:10px;">
+                <input type="text" id="nomeMercado" placeholder="Nome do Supermercado" class="form-group">
+                <input type="date" id="dataCompra" class="form-group">
+                <div class="radio-group" id="formaPagamento" onchange="verificarPagamento()">
+                    <input type="radio" name="pag" id="pag_c" value="Cartão" checked><label for="pag_c">Cartão</label>
+                    <input type="radio" name="pag" id="pag_d" value="Dinheiro"><label for="pag_d">Dinheiro</label>
+                    <input type="radio" name="pag" id="pag_p" value="Pix"><label for="pag_p">Pix</label>
+                </div>
+                
+                <div class="dinheiro-box" id="caixaDinheiro">
+                    <input type="number" id="valorEntregue" placeholder="Valor entregue (Ex: 50.00)" step="0.01">
+                </div>
+
+                <button onclick="fecharLista()" style="margin-top:15px; background:var(--neon-verde)">FINALIZAR E SALVAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA 2: HISTÓRICO -->
+    <div id="tela-historico" class="tela">
+        <h2 style="margin-top:0">Listas Salvas</h2>
+        <div id="historicoContainer"></div>
+        
+        <div class="backup-container">
+            <button class="btn-export" onclick="exportarJSON()">📥 Exportar Backup</button>
+            <div class="file-upload-wrapper">
+                <button class="btn-import">📤 Importar</button>
+                <input type="file" accept=".json" onchange="importarJSON(event)">
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA 3: DETALHES E EDIÇÃO DA LISTA -->
+    <div id="tela-detalhe" class="tela">
+        <div class="lista-container" style="margin-top: 0;">
+            <div class="header-detalhe">
+                <button class="btn-acao-top" onclick="mudarTela('historico')">⬅ Voltar</button>
+                <button class="btn-acao-top" style="background: #ffb74d; color:#000; font-weight:bold" onclick="abrirEdicaoLista()">✏ Editar Infos</button>
+            </div>
+            
+            <!-- CAIXA DE EDIÇÃO (Oculta por padrão) -->
+            <div class="edit-box" id="boxEdicao">
+                <h4 style="margin-top:0; color:var(--primary-color);">Editar Informações</h4>
+                <input type="text" id="editMercado" class="form-group" placeholder="Nome do Mercado">
+                <input type="date" id="editData" class="form-group">
+                <div class="radio-group form-group" onchange="verificarPagamentoEdit()">
+                    <input type="radio" name="editPag" id="epag_c" value="Cartão"><label for="epag_c">Cartão</label>
+                    <input type="radio" name="editPag" id="epag_d" value="Dinheiro"><label for="epag_d">Dinheiro</label>
+                    <input type="radio" name="editPag" id="epag_p" value="Pix"><label for="epag_p">Pix</label>
+                </div>
+                <div class="dinheiro-box" id="editCaixaDinheiro">
+                    <input type="number" id="editValorEntregue" placeholder="Novo valor entregue em espécie" step="0.01">
+                </div>
+                <button onclick="salvarEdicao()" style="background:var(--neon-verde);">Salvar Alterações</button>
+            </div>
+
+            <h3 style="margin: 0; color: var(--primary-color)" id="detalheMercado">Supermercado</h3>
+            <p style="color: #aaa; margin-top: 5px;" id="detalheInfo">Data - Pagamento</p>
+            
+            <table id="detalheTabelaItens"></table>
+            
+            <h3 style="text-align: right; color: var(--primary-color);">Total: R$ <span id="detalheTotal">0.00</span></h3>
+            <button class="btn-share" id="btnCompartilhar" style="margin-top: 20px;">Compartilhar Lista ↗</button>
+        </div>
+    </div>
+
+    <script>
+        // === BANCO DE DADOS ===
+        let db;
+        const request = indexedDB.open("MercadoProDB_v5", 5);
+
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if(!db.objectStoreNames.contains("carrinho")) db.createObjectStore("carrinho", { keyPath: "id", autoIncrement: true });
+            if(!db.objectStoreNames.contains("historico")) db.createObjectStore("historico", { keyPath: "id_doc" });
+        };
+
+        request.onsuccess = (e) => {
+            db = e.target.result;
+            atualizarCarrinho();
+            carregarHistorico();
+            document.getElementById('dataCompra').value = new Date().toISOString().split('T')[0];
+        };
+
+        // === AUTO FULLSCREEN E MENU ===
+        let fullscreenRequested = false;
+
+        // Tenta abrir tela cheia no primeiro clique/toque em qualquer lugar (se não estiver cheia)
+        document.body.addEventListener('click', () => {
+            if (!fullscreenRequested && !document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log("Fullscreen auto bloqueado pelo navegador."));
+                fullscreenRequested = true;
+                document.getElementById('txtFull').innerText = "⛶ Sair Tela Cheia";
+            }
+        }, { once: true });
+
+        function toggleMenu() {
+            document.getElementById('menuDrop').classList.toggle('show');
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                document.getElementById('txtFull').innerText = "⛶ Sair Tela Cheia";
+            } else {
+                document.exitFullscreen();
+                document.getElementById('txtFull').innerText = "⛶ Tela Cheia";
+            }
+            toggleMenu();
+        }
+
+        // === PWA INSTALAÇÃO ===
+        let promptInstalacao;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            promptInstalacao = e;
+        });
+
+        function instalarApp() {
+            toggleMenu();
+            if (promptInstalacao) {
+                promptInstalacao.prompt();
+            } else {
+                alert("Para instalar:\nNo Android (Chrome): Toque nos 3 pontinhos no canto superior direito e escolha 'Adicionar à tela inicial'.\nNo iPhone (Safari): Toque no ícone de compartilhar na barra inferior e escolha 'Adicionar à Tela de Início'.");
+            }
+        }
+
+        // Fecar menu se clicar fora
+        window.onclick = function(event) {
+            if (!event.target.matches('.hamburger-btn')) {
+                const dropdowns = document.getElementsByClassName("menu-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show');
+                }
+            }
+        }
+
+        // === NAVEGAÇÃO ===
+        function mudarTela(tela) {
+            document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+            document.getElementById('tela-' + tela).classList.add('ativa');
+            
+            if(tela === 'compras' || tela === 'historico') {
+                document.querySelector('.tabs').style.display = 'flex';
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('tab-' + (tela == 'compras' ? 'nova' : 'hist')).classList.add('active');
+                if(tela === 'historico') carregarHistorico();
+            } else {
+                document.querySelector('.tabs').style.display = 'none';
+            }
+        }
+
+        function verificarPagamento() {
+            const ehDinheiro = document.querySelector('input[name="pag"]:checked').value === 'Dinheiro';
+            document.getElementById('caixaDinheiro').style.display = ehDinheiro ? 'block' : 'none';
+        }
+
+        function alternarModoInterface() {
+            const isPapel = document.getElementById('checkPapel').checked;
+            ['A', 'B'].forEach(l => {
+                document.getElementById('padrao'+l).style.display = isPapel ? 'none' : 'block';
+                document.getElementById('papel'+l).style.display = isPapel ? 'block' : 'none';
+            });
+            calcular();
+        }
+
+        function calcular() {
+            const isPapel = document.getElementById('checkPapel').checked;
+            let custos = { A: Infinity, B: Infinity };
+
+            ['A', 'B'].forEach(l => {
+                const preco = parseFloat(document.getElementById('preco'+l).value) || 0;
+                if (preco <= 0) return;
+
+                if (!isPapel) {
+                    const qtd = parseFloat(document.getElementById('qtd'+l).value) || 0;
+                    const un = document.querySelector(`input[name="unidade${l}"]:checked`).value;
+                    if (qtd > 0) {
+                        let precoBase = preco / qtd;
+                        let exibicaoBase = un;
+                        if (un === 'g') { precoBase *= 1000; exibicaoBase = 'kg'; }
+                        if (un === 'ml') { precoBase *= 1000; exibicaoBase = 'L'; }
+                        
+                        custos[l] = precoBase;
+                        document.getElementById('res'+l).innerText = `R$ ${precoBase.toFixed(2)} / ${exibicaoBase}`;
+                    }
+                } else {
+                    const rolos = parseInt(document.querySelector(`input[name="rolo${l}"]:checked`).value);
+                    const metros = parseInt(document.querySelector(`input[name="met${l}"]:checked`).value);
+                    const folhas = parseInt(document.querySelector(`input[name="folha${l}"]:checked`).value);
+                    const rendimento = rolos * metros * folhas;
+                    const precoM = preco / rendimento;
+                    custos[l] = precoM;
+                    document.getElementById('res'+l).innerText = `R$ ${precoM.toFixed(6)} / un.rend`;
+                }
+            });
+
+            document.getElementById('cardA').classList.remove('neon-verde');
+            document.getElementById('cardB').classList.remove('neon-verde');
+            if (custos.A < custos.B) document.getElementById('cardA').classList.add('neon-verde');
+            else if (custos.B < custos.A) document.getElementById('cardB').classList.add('neon-verde');
+        }
+
+        function salvarItemLista(lado) {
+            const nome = document.getElementById('nome'+lado).value || "Produto " + lado;
+            const preco = parseFloat(document.getElementById('preco'+lado).value) || 0;
+            const isPapel = document.getElementById('checkPapel').checked;
+            
+            if (preco <= 0) return alert("Insira o preço!");
+
+            let especificacao = "";
+            let comparativo = "";
+            
+            if (!isPapel) {
+                const qtd = parseFloat(document.getElementById('qtd'+lado).value) || 0;
+                if(qtd <= 0) return alert("Insira a quantidade!");
+                const un = document.querySelector(`input[name="unidade${lado}"]:checked`).value;
+                especificacao = `${qtd} ${un}`;
+                
+                let pBase = preco / qtd;
+                let uBase = un;
+                if (un === 'g') { pBase *= 1000; uBase = 'kg'; }
+                if (un === 'ml') { pBase *= 1000; uBase = 'L'; }
+                comparativo = `(Equivale a R$ ${pBase.toFixed(2)} / ${uBase})`;
+            } else {
+                const rolos = document.querySelector(`input[name="rolo${lado}"]:checked`).value;
+                const metros = document.querySelector(`input[name="met${lado}"]:checked`).value;
+                const folhas = document.querySelector(`input[name="folha${lado}"]:checked`).value;
+                let tpFolha = folhas == 1 ? 'Simples' : (folhas == 2 ? 'Dupla' : 'Tripla');
+                especificacao = `${rolos} rolos x ${metros}m (${tpFolha})`;
+                
+                const rend = parseInt(rolos) * parseInt(metros) * parseInt(folhas);
+                comparativo = `(Índice R$ ${(preco/rend).toFixed(6)})`;
+            }
+
+            const trans = db.transaction(["carrinho"], "readwrite");
+            trans.objectStore("carrinho").add({ nome, preco, especificacao, comparativo });
+            
+            trans.oncomplete = () => {
+                atualizarCarrinho();
+                ['nome'+lado, 'preco'+lado, 'qtd'+lado].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.value = '';
+                });
+            };
+        }
+
+        function atualizarCarrinho() {
+            const store = db.transaction("carrinho").objectStore("carrinho");
+            store.getAll().onsuccess = (e) => {
+                const itens = e.target.result;
+                const tabela = document.getElementById('tabelaItens');
+                let total = 0;
+                tabela.innerHTML = '';
+                itens.forEach(it => {
+                    total += it.preco;
+                    tabela.innerHTML += `
+                        <tr>
+                            <td><b>${it.nome}</b><span class="unidade-txt">${it.especificacao || ''}</span><span class="comp-txt">${it.comparativo || ''}</span></td>
+                            <td style="vertical-align:top">R$ ${it.preco.toFixed(2)}</td>
+                            <td align="right" style="vertical-align:top"><button class="remover-btn" onclick="removerItem(${it.id})">X</button></td>
+                        </tr>`;
+                });
+                document.getElementById('totalCarrinho').innerText = total.toFixed(2);
+            };
+        }
+
+        function removerItem(id) {
+            db.transaction("carrinho", "readwrite").objectStore("carrinho").delete(id).oncomplete = atualizarCarrinho;
+        }
+
+        async function fecharLista() {
+            const trans = db.transaction(["carrinho", "historico"], "readwrite");
+            const itens = await new Promise(r => trans.objectStore("carrinho").getAll().onsuccess = e => r(e.target.result));
+            if (itens.length === 0) return alert("Carrinho vazio!");
+
+            const data = document.getElementById('dataCompra').value;
+            const mercado = document.getElementById('nomeMercado').value || "Supermercado";
+            const pag = document.querySelector('input[name="pag"]:checked').value;
+            const total = itens.reduce((a, b) => a + b.preco, 0);
+            
+            let tipoPag = pag; // Guarda apenas "Cartão", "Pix" ou "Dinheiro"
+            let dinheiroEspecie = 0;
+            let strPagamento = pag;
+
+            if (pag === 'Dinheiro') {
+                dinheiroEspecie = parseFloat(document.getElementById('valorEntregue').value) || 0;
+                if (dinheiroEspecie > 0) {
+                    strPagamento += ` (Deu: R$ ${dinheiroEspecie.toFixed(2)} | Troco: R$ ${(dinheiroEspecie - total).toFixed(2)})`;
+                }
+            }
+
+            const prefixo = data.split('-').reverse().join('').substring(0,4) + data.substring(2,4); 
+            const histStore = trans.objectStore("historico");
+            const todasKeys = await new Promise(r => histStore.getAllKeys().onsuccess = e => r(e.target.result));
+            const seq = todasKeys.filter(k => k.startsWith(prefixo)).length + 1;
+            const idDoc = `${prefixo}-${seq}`;
+
+            histStore.add({ 
+                id_doc: idDoc, data, mercado, total, 
+                tipo_pag: tipoPag, valor_especie: dinheiroEspecie, pag: strPagamento, itens 
+            });
+
+            trans.objectStore("carrinho").clear();
+            trans.oncomplete = () => {
+                alert("Lista Salva!");
+                document.getElementById('nomeMercado').value = '';
+                document.getElementById('valorEntregue').value = '';
+                atualizarCarrinho();
+                mudarTela('historico');
+            };
+        }
+
+        function carregarHistorico() {
+            const container = document.getElementById('historicoContainer');
+            db.transaction("historico").objectStore("historico").getAll().onsuccess = (e) => {
+                const listas = e.target.result.sort((a,b) => b.id_doc.localeCompare(a.id_doc));
+                container.innerHTML = listas.length ? '' : '<p>Nenhuma lista salva.</p>';
+                listas.forEach(l => {
+                    container.innerHTML += `
+                        <div class="historico-card" onclick="abrirDetalheLista('${l.id_doc}')">
+                            <div><strong>${l.mercado}</strong><br><small>${l.data.split('-').reverse().join('/')}</small></div>
+                            <div style="text-align:right"><span style="color:var(--primary-color); font-weight:bold">R$ ${l.total.toFixed(2)}</span><br>
+                            <span class="badge-pag">${l.tipo_pag || l.pag.split(' ')[0]}</span></div>
+                        </div>`;
+                });
+            };
+        }
+
+        // === EDIÇÃO DE LISTAS SALVAS ===
+        let listaAbertaId = null;
+        let listaAbertaObj = null;
+
+        function abrirDetalheLista(id) {
+            db.transaction("historico").objectStore("historico").get(id).onsuccess = (e) => {
+                const l = e.target.result;
+                if(!l) return;
+                listaAbertaId = id;
+                listaAbertaObj = l;
+                
+                document.getElementById('boxEdicao').classList.remove('ativo'); // Garante que a edição inicie fechada
+
+                document.getElementById('detalheMercado').innerText = l.mercado;
+                document.getElementById('detalheInfo').innerHTML = `<b>Data:</b> ${l.data.split('-').reverse().join('/')} <br> <b>Pag:</b> ${l.pag}`;
+                document.getElementById('detalheTotal').innerText = l.total.toFixed(2);
+                
+                const tab = document.getElementById('detalheTabelaItens');
+                tab.innerHTML = '';
+                l.itens.forEach(i => {
+                    tab.innerHTML += `<tr><td><b>${i.nome}</b><span class="unidade-txt">${i.especificacao || ''}</span></td><td align="right" style="vertical-align:top">R$ ${i.preco.toFixed(2)}</td></tr>`;
+                });
+
+                document.getElementById('btnCompartilhar').onclick = () => compartilharLista(l);
+                mudarTela('detalhe');
+            };
+        }
+
+        function abrirEdicaoLista() {
+            document.getElementById('boxEdicao').classList.add('ativo');
+            document.getElementById('editMercado').value = listaAbertaObj.mercado;
+            document.getElementById('editData').value = listaAbertaObj.data;
+            
+            // Marca o radio correto de pagamento
+            const tipoPag = listaAbertaObj.tipo_pag || listaAbertaObj.pag.split(' ')[0];
+            if(tipoPag === 'Cartão') document.getElementById('epag_c').checked = true;
+            else if(tipoPag === 'Pix') document.getElementById('epag_p').checked = true;
+            else document.getElementById('epag_d').checked = true;
+            
+            document.getElementById('editValorEntregue').value = listaAbertaObj.valor_especie || '';
+            verificarPagamentoEdit();
+        }
+
+        function verificarPagamentoEdit() {
+            const ehDinheiro = document.querySelector('input[name="editPag"]:checked').value === 'Dinheiro';
+            document.getElementById('editCaixaDinheiro').style.display = ehDinheiro ? 'block' : 'none';
+        }
+
+        function salvarEdicao() {
+            const nvMercado = document.getElementById('editMercado').value || "Supermercado";
+            const nvData = document.getElementById('editData').value;
+            const nvPag = document.querySelector('input[name="editPag"]:checked').value;
+            
+            let nvStrPagamento = nvPag;
+            let nvEspecie = 0;
+
+            if (nvPag === 'Dinheiro') {
+                nvEspecie = parseFloat(document.getElementById('editValorEntregue').value) || 0;
+                if (nvEspecie > 0) {
+                    nvStrPagamento += ` (Deu: R$ ${nvEspecie.toFixed(2)} | Troco: R$ ${(nvEspecie - listaAbertaObj.total).toFixed(2)})`;
+                }
+            }
+
+            // Atualiza o objeto
+            listaAbertaObj.mercado = nvMercado;
+            listaAbertaObj.data = nvData;
+            listaAbertaObj.tipo_pag = nvPag;
+            listaAbertaObj.valor_especie = nvEspecie;
+            listaAbertaObj.pag = nvStrPagamento;
+
+            // Salva no banco
+            const trans = db.transaction(["historico"], "readwrite");
+            trans.objectStore("historico").put(listaAbertaObj);
+
+            trans.oncomplete = () => {
+                alert("Alterações salvas!");
+                document.getElementById('boxEdicao').classList.remove('ativo');
+                abrirDetalheLista(listaAbertaId); // Recarrega os dados na tela
+            };
+        }
+
+        // === EXPORTAR / COMPARTILHAR ===
+        function compartilharLista(l) {
+            let texto = `🛒 *Lista: ${l.mercado}*\n📅 Data: ${l.data.split('-').reverse().join('/')}\n--------------------------\n`;
+            l.itens.forEach(i => { let desc = i.especificacao ? ` (${i.especificacao})` : ''; texto += `🔹 ${i.nome}${desc}: R$ ${i.preco.toFixed(2)}\n`; });
+            texto += `--------------------------\n💰 *TOTAL: R$ ${l.total.toFixed(2)}*\n💳 Pag: ${l.pag}`;
+            if (navigator.share) navigator.share({ title: 'Minha Compra', text: texto }).catch(e => console.log('Erro', e));
+            else { navigator.clipboard.writeText(texto); alert("Copiado!"); }
+        }
+
+        function exportarJSON() {
+            db.transaction("historico").objectStore("historico").getAll().onsuccess = (e) => {
+                if(e.target.result.length === 0) return alert("Sem dados.");
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(new Blob([JSON.stringify(e.target.result, null, 2)], { type: "application/json" }));
+                a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a).click();
+                document.body.removeChild(a);
+            };
+        }
+
+        function importarJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    const tx = db.transaction("historico", "readwrite");
+                    dados.forEach(item => tx.objectStore("historico").put(item));
+                    tx.oncomplete = () => { alert("Importado!"); event.target.value = ''; carregarHistorico(); };
+                } catch (error) { alert("Arquivo inválido."); }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
