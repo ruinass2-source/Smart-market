@@ -300,7 +300,6 @@
         // === AUTO FULLSCREEN E MENU ===
         let fullscreenRequested = false;
 
-        // Tenta abrir tela cheia no primeiro clique/toque em qualquer lugar (se não estiver cheia)
         document.body.addEventListener('click', () => {
             if (!fullscreenRequested && !document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log("Fullscreen auto bloqueado pelo navegador."));
@@ -336,11 +335,10 @@
             if (promptInstalacao) {
                 promptInstalacao.prompt();
             } else {
-                alert("Para instalar:\nNo Android (Chrome): Toque nos 3 pontinhos no canto superior direito e escolha 'Adicionar à tela inicial'.\nNo iPhone (Safari): Toque no ícone de compartilhar na barra inferior e escolha 'Adicionar à Tela de Início'.");
+                alert("Para instalar:\nNo Android (Chrome/Edge): Toque no menu do navegador e escolha 'Adicionar à tela inicial'.");
             }
         }
 
-        // Fecar menu se clicar fora
         window.onclick = function(event) {
             if (!event.target.matches('.hamburger-btn')) {
                 const dropdowns = document.getElementsByClassName("menu-dropdown");
@@ -453,10 +451,19 @@
             
             trans.oncomplete = () => {
                 atualizarCarrinho();
-                ['nome'+lado, 'preco'+lado, 'qtd'+lado].forEach(id => {
-                    const el = document.getElementById(id);
-                    if(el) el.value = '';
+                
+                // NOVO CÓDIGO: Limpa o Lado A e o Lado B completamente, independentemente de qual foi salvo.
+                ['A', 'B'].forEach(l => {
+                    ['nome'+l, 'preco'+l, 'qtd'+l].forEach(id => {
+                        const el = document.getElementById(id);
+                        if(el) el.value = '';
+                    });
+                    document.getElementById('res'+l).innerText = 'R$ 0.00';
                 });
+                
+                // Remove os contornos verdes
+                document.getElementById('cardA').classList.remove('neon-verde');
+                document.getElementById('cardB').classList.remove('neon-verde');
             };
         }
 
@@ -494,7 +501,7 @@
             const pag = document.querySelector('input[name="pag"]:checked').value;
             const total = itens.reduce((a, b) => a + b.preco, 0);
             
-            let tipoPag = pag; // Guarda apenas "Cartão", "Pix" ou "Dinheiro"
+            let tipoPag = pag;
             let dinheiroEspecie = 0;
             let strPagamento = pag;
 
@@ -542,7 +549,6 @@
             };
         }
 
-        // === EDIÇÃO DE LISTAS SALVAS ===
         let listaAbertaId = null;
         let listaAbertaObj = null;
 
@@ -553,7 +559,7 @@
                 listaAbertaId = id;
                 listaAbertaObj = l;
                 
-                document.getElementById('boxEdicao').classList.remove('ativo'); // Garante que a edição inicie fechada
+                document.getElementById('boxEdicao').classList.remove('ativo');
 
                 document.getElementById('detalheMercado').innerText = l.mercado;
                 document.getElementById('detalheInfo').innerHTML = `<b>Data:</b> ${l.data.split('-').reverse().join('/')} <br> <b>Pag:</b> ${l.pag}`;
@@ -575,7 +581,6 @@
             document.getElementById('editMercado').value = listaAbertaObj.mercado;
             document.getElementById('editData').value = listaAbertaObj.data;
             
-            // Marca o radio correto de pagamento
             const tipoPag = listaAbertaObj.tipo_pag || listaAbertaObj.pag.split(' ')[0];
             if(tipoPag === 'Cartão') document.getElementById('epag_c').checked = true;
             else if(tipoPag === 'Pix') document.getElementById('epag_p').checked = true;
@@ -605,25 +610,22 @@
                 }
             }
 
-            // Atualiza o objeto
             listaAbertaObj.mercado = nvMercado;
             listaAbertaObj.data = nvData;
             listaAbertaObj.tipo_pag = nvPag;
             listaAbertaObj.valor_especie = nvEspecie;
             listaAbertaObj.pag = nvStrPagamento;
 
-            // Salva no banco
             const trans = db.transaction(["historico"], "readwrite");
             trans.objectStore("historico").put(listaAbertaObj);
 
             trans.oncomplete = () => {
                 alert("Alterações salvas!");
                 document.getElementById('boxEdicao').classList.remove('ativo');
-                abrirDetalheLista(listaAbertaId); // Recarrega os dados na tela
+                abrirDetalheLista(listaAbertaId);
             };
         }
 
-        // === EXPORTAR / COMPARTILHAR ===
         function compartilharLista(l) {
             let texto = `🛒 *Lista: ${l.mercado}*\n📅 Data: ${l.data.split('-').reverse().join('/')}\n--------------------------\n`;
             l.itens.forEach(i => { let desc = i.especificacao ? ` (${i.especificacao})` : ''; texto += `🔹 ${i.nome}${desc}: R$ ${i.preco.toFixed(2)}\n`; });
