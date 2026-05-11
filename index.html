@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Configurações para Web App Nativo (PWA) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#121212">
@@ -51,7 +52,7 @@
         .tela { display: none; }
         .tela.ativa { display: block; }
 
-        /* Toggle Corrigido */
+        /* Toggle */
         .modo-toggle { text-align: center; margin-bottom: 15px; background: var(--surface-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
         .modo-toggle label { font-weight: bold; cursor: pointer; color: #ffb74d; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.1em;}
         .modo-toggle input[type="checkbox"] { transform: scale(1.4); margin: 0; }
@@ -68,6 +69,24 @@
         .radio-group input[type="radio"] { display: none; }
         .radio-group label { background-color: #333; padding: 6px 4px; border-radius: 4px; font-size: 0.7em; cursor: pointer; border: 1px solid #555; flex: 1; text-align: center; }
         .radio-group input[type="radio"]:checked + label { background-color: var(--primary-color); color: #000; font-weight: bold; }
+
+        /* Estilo do campo de digitação direto no grupo de botões */
+        .input-direto { 
+            flex: 1.2; 
+            padding: 6px 4px; 
+            background-color: #333; 
+            border: 1px solid #555; 
+            color: white; 
+            border-radius: 4px; 
+            font-size: 0.8em; 
+            text-align: center; 
+            box-sizing: border-box; 
+            min-width: 0;
+        }
+        .input-direto:focus { border-color: var(--primary-color); outline: none; background-color: #2a2a2a;}
+        .input-direto::placeholder { color: #999; }
+        .input-direto::-webkit-outer-spin-button, .input-direto::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .input-direto[type=number] { -moz-appearance: textfield; }
 
         .resultado-preco { font-size: 1em; font-weight: bold; color: #ffb74d; margin: 8px 0; text-align: center; min-height: 3em; display: flex; align-items: center; justify-content: center;}
 
@@ -151,11 +170,15 @@
                         <input type="radio" name="roloA" id="rolA_24" value="24"><label for="rolA_24">24</label>
                         <input type="radio" name="roloA" id="rolA_32" value="32"><label for="rolA_32">32</label>
                     </div>
-                    <div class="radio-group" style="margin-top:5px" onchange="calcular()">
+                    
+                    <!-- Campo misto de Metros com digitação direta -->
+                    <div class="radio-group" style="margin-top:5px" onchange="limparInput('metA_input'); calcular()">
                         <input type="radio" name="metA" id="metA_20" value="20"><label for="metA_20">20m</label>
                         <input type="radio" name="metA" id="metA_30" value="30" checked><label for="metA_30">30m</label>
                         <input type="radio" name="metA" id="metA_60" value="60"><label for="metA_60">60m</label>
+                        <input type="number" id="metA_input" class="input-direto" placeholder="Outro" oninput="desmarcarRadios('metA'); calcular()">
                     </div>
+                    
                     <div class="radio-group" style="margin-top:5px" onchange="calcular()">
                         <input type="radio" name="folhaA" id="folA_1" value="1"><label for="folA_1">Simples</label>
                         <input type="radio" name="folhaA" id="folA_2" value="2" checked><label for="folA_2">Dupla</label>
@@ -192,11 +215,15 @@
                         <input type="radio" name="roloB" id="rolB_24" value="24"><label for="rolB_24">24</label>
                         <input type="radio" name="roloB" id="rolB_32" value="32"><label for="rolB_32">32</label>
                     </div>
-                    <div class="radio-group" style="margin-top:5px" onchange="calcular()">
+
+                    <!-- Campo misto de Metros com digitação direta -->
+                    <div class="radio-group" style="margin-top:5px" onchange="limparInput('metB_input'); calcular()">
                         <input type="radio" name="metB" id="metB_20" value="20"><label for="metB_20">20m</label>
                         <input type="radio" name="metB" id="metB_30" value="30" checked><label for="metB_30">30m</label>
                         <input type="radio" name="metB" id="metB_60" value="60"><label for="metB_60">60m</label>
+                        <input type="number" id="metB_input" class="input-direto" placeholder="Outro" oninput="desmarcarRadios('metB'); calcular()">
                     </div>
+
                     <div class="radio-group" style="margin-top:5px" onchange="calcular()">
                         <input type="radio" name="folhaB" id="folB_1" value="1"><label for="folB_1">Simples</label>
                         <input type="radio" name="folhaB" id="folB_2" value="2" checked><label for="folB_2">Dupla</label>
@@ -253,7 +280,6 @@
                 <button class="btn-acao-top" style="background: #ffb74d; color:#000; font-weight:bold" onclick="abrirEdicaoLista()">✏ Editar Infos</button>
             </div>
             
-            <!-- CAIXA DE EDIÇÃO (Oculta por padrão) -->
             <div class="edit-box" id="boxEdicao">
                 <h4 style="margin-top:0; color:var(--primary-color);">Editar Informações</h4>
                 <input type="text" id="editMercado" class="form-group" placeholder="Nome do Mercado">
@@ -302,7 +328,7 @@
 
         document.body.addEventListener('click', () => {
             if (!fullscreenRequested && !document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log("Fullscreen auto bloqueado pelo navegador."));
+                document.documentElement.requestFullscreen().catch(err => console.log("Fullscreen bloqueado."));
                 fullscreenRequested = true;
                 document.getElementById('txtFull').innerText = "⛶ Sair Tela Cheia";
             }
@@ -323,7 +349,6 @@
             toggleMenu();
         }
 
-        // === PWA INSTALAÇÃO ===
         let promptInstalacao;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -332,11 +357,8 @@
 
         function instalarApp() {
             toggleMenu();
-            if (promptInstalacao) {
-                promptInstalacao.prompt();
-            } else {
-                alert("Para instalar:\nNo Android (Chrome/Edge): Toque no menu do navegador e escolha 'Adicionar à tela inicial'.");
-            }
+            if (promptInstalacao) promptInstalacao.prompt();
+            else alert("Para instalar:\nNo Android (Chrome/Edge): Toque no menu e escolha 'Adicionar à tela inicial'.");
         }
 
         window.onclick = function(event) {
@@ -348,7 +370,7 @@
             }
         }
 
-        // === NAVEGAÇÃO ===
+        // === NAVEGAÇÃO E UX COMPARTILHADA ===
         function mudarTela(tela) {
             document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
             document.getElementById('tela-' + tela).classList.add('ativa');
@@ -377,6 +399,15 @@
             calcular();
         }
 
+        // Funções para controle do campo "Outros" de metragem
+        function limparInput(id) {
+            document.getElementById(id).value = '';
+        }
+
+        function desmarcarRadios(name) {
+            document.querySelectorAll(`input[name="${name}"]`).forEach(r => r.checked = false);
+        }
+
         function calcular() {
             const isPapel = document.getElementById('checkPapel').checked;
             let custos = { A: Infinity, B: Infinity };
@@ -398,13 +429,30 @@
                         document.getElementById('res'+l).innerText = `R$ ${precoBase.toFixed(2)} / ${exibicaoBase}`;
                     }
                 } else {
-                    const rolos = parseInt(document.querySelector(`input[name="rolo${l}"]:checked`).value);
-                    const metros = parseInt(document.querySelector(`input[name="met${l}"]:checked`).value);
-                    const folhas = parseInt(document.querySelector(`input[name="folha${l}"]:checked`).value);
-                    const rendimento = rolos * metros * folhas;
-                    const precoM = preco / rendimento;
-                    custos[l] = precoM;
-                    document.getElementById('res'+l).innerText = `R$ ${precoM.toFixed(6)} / un.rend`;
+                    const rolosRadio = document.querySelector(`input[name="rolo${l}"]:checked`);
+                    const folhasRadio = document.querySelector(`input[name="folha${l}"]:checked`);
+                    if(!rolosRadio || !folhasRadio) return; // Aguarda o usuário preencher
+                    
+                    const rolos = parseInt(rolosRadio.value);
+                    const folhas = parseInt(folhasRadio.value);
+                    
+                    // Lógica para metragem mista (Input Direto vs Radios)
+                    let metrosDigitados = parseFloat(document.getElementById(`met${l}_input`).value);
+                    let metros = 0;
+
+                    if (!isNaN(metrosDigitados) && metrosDigitados > 0) {
+                        metros = metrosDigitados;
+                    } else {
+                        const radioSelecionado = document.querySelector(`input[name="met${l}"]:checked`);
+                        if (radioSelecionado) metros = parseInt(radioSelecionado.value);
+                    }
+
+                    if(metros > 0) {
+                        const rendimento = rolos * metros * folhas;
+                        const precoM = preco / rendimento;
+                        custos[l] = precoM;
+                        document.getElementById('res'+l).innerText = `R$ ${precoM.toFixed(6)} / un.rend`;
+                    }
                 }
             });
 
@@ -437,8 +485,20 @@
                 comparativo = `(Equivale a R$ ${pBase.toFixed(2)} / ${uBase})`;
             } else {
                 const rolos = document.querySelector(`input[name="rolo${lado}"]:checked`).value;
-                const metros = document.querySelector(`input[name="met${lado}"]:checked`).value;
                 const folhas = document.querySelector(`input[name="folha${lado}"]:checked`).value;
+                
+                let metrosDigitados = parseFloat(document.getElementById(`met${lado}_input`).value);
+                let metros = 0;
+
+                if (!isNaN(metrosDigitados) && metrosDigitados > 0) {
+                    metros = metrosDigitados;
+                } else {
+                    const radioSelecionado = document.querySelector(`input[name="met${lado}"]:checked`);
+                    if (radioSelecionado) metros = parseFloat(radioSelecionado.value);
+                }
+
+                if (metros <= 0) return alert("Insira a metragem do papel!");
+
                 let tpFolha = folhas == 1 ? 'Simples' : (folhas == 2 ? 'Dupla' : 'Tripla');
                 especificacao = `${rolos} rolos x ${metros}m (${tpFolha})`;
                 
@@ -452,16 +512,21 @@
             trans.oncomplete = () => {
                 atualizarCarrinho();
                 
-                // NOVO CÓDIGO: Limpa o Lado A e o Lado B completamente, independentemente de qual foi salvo.
+                // Limpa os campos para a próxima comparação
                 ['A', 'B'].forEach(l => {
-                    ['nome'+l, 'preco'+l, 'qtd'+l].forEach(id => {
+                    ['nome'+l, 'preco'+l, 'qtd'+l, 'met'+l+'_input'].forEach(id => {
                         const el = document.getElementById(id);
                         if(el) el.value = '';
                     });
+                    
+                    // Reseta os radios do papel higiênico para os padrões
+                    document.getElementById(`rol${l}_8`).checked = true;
+                    document.getElementById(`met${l}_30`).checked = true;
+                    document.getElementById(`fol${l}_2`).checked = true;
+
                     document.getElementById('res'+l).innerText = 'R$ 0.00';
                 });
                 
-                // Remove os contornos verdes
                 document.getElementById('cardA').classList.remove('neon-verde');
                 document.getElementById('cardB').classList.remove('neon-verde');
             };
